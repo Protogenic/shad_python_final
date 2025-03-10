@@ -9,6 +9,7 @@ class BaseBook(BaseModel):
     title: str
     author: str
     year: int
+    seller_id: int 
 
 
 # Класс для валидации входящих данных. Не содержит id так как его присваивает БД.
@@ -20,7 +21,7 @@ class IncomingBook(BaseBook):
     @field_validator("year")  # Валидатор, проверяет что дата не слишком древняя
     @staticmethod
     def validate_year(val: int):
-        if val < 2020:
+        if val < 1800:
             raise PydanticCustomError("Validation error", "Year is too old!")
 
         return val

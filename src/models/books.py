@@ -1,7 +1,9 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
 
 from .base import BaseModel
+
 
 
 class Book(BaseModel):
@@ -13,3 +15,5 @@ class Book(BaseModel):
     year: Mapped[int]
     pages: Mapped[int]
     seller_id: Mapped[int] = mapped_column(ForeignKey("sellers_table.id", ondelete="CASCADE"))
+
+    seller = relationship("Seller", back_populates="books")

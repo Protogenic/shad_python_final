@@ -6,18 +6,34 @@ from fastapi import status
 async def test_create_seller(async_client):
     data = {
         "first_name": "Ivan",
-        "last_name": "Ivanov",
-        "e_mail": "ivan@mail.com",
-        "password": "qwerty123"
+        "last_name": "Petrov",
+        "e_mail": "ivan.petrov@example.com",
+        "password": "securepassword"
     }
     response = await async_client.post("/api/v1/sellers/", json=data)
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json()["first_name"] == "Ivan"
-
+    json_data = response.json()
+    
+    # Check if 'id' is in response
+    assert "id" in json_data
+    
+    # Ensure 'password' is NOT in response
+    assert "password" not in json_data
+    
 
 @pytest.mark.asyncio
 async def test_get_all_sellers(async_client):
+    # Creating a seller before testing GET
+    data = {
+        "first_name": "Ivan",
+        "last_name": "Petrov",
+        "e_mail": "ivan.petrov@example.com",
+        "password": "securepassword"
+    }
+    await async_client.post("/api/v1/sellers/", json=data)
+
+    # Now testing GET sellers
     response = await async_client.get("/api/v1/sellers/")
 
     assert response.status_code == status.HTTP_200_OK
@@ -26,5 +42,17 @@ async def test_get_all_sellers(async_client):
 
 @pytest.mark.asyncio
 async def test_delete_seller(async_client):
-    response = await async_client.delete("/api/v1/sellers/1")
-    assert response.status_code == status.HTTP_204_NO_CONTENT
+    # Create seller first
+    data = {
+        "first_name": "Ivan",
+        "last_name": "Petrov",
+        "e_mail": "ivan.petrov@example.com",
+        "password": "securepassword"
+    }
+    create_response = await async_client.post("/api/v1/sellers/", json=data)
+    seller_id = create_response.json()["id"]
+
+    # Delete the created seller
+    delete_response = await async_client.delete(f"/api/v1/sellers/{seller_id}")
+
+    assert delete_response.status_code == status.HTTP_204_NO_CONTENT

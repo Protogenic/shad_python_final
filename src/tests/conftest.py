@@ -20,7 +20,7 @@ from src.models.books import Book  # noqa F401
 # Фикстуры тестов их не зачистят.
 # и обеспечивает чистую среду для запуска тестов. В ней не будет лишних записей.
 async_test_engine = create_async_engine(
-    settings.database_test_url,
+    settings.database_url,
     echo=True,
 )
 

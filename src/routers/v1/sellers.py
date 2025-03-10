@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, Response, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+from sqlalchemy.future import select
 
 from src.configurations import get_async_session
 from src.models.sellers import Seller
 from src.schemas.seller import IncomingSeller, ReturnedSeller, ReturnedSellerWithBooks
+from src.schemas.books import ReturnedBook
 
 sellers_router = APIRouter(tags=["sellers"], prefix="/sellers")
 
@@ -28,12 +30,24 @@ async def get_all_sellers(session: AsyncSession = DBSession):
 
 
 @sellers_router.get("/{seller_id}", response_model=ReturnedSellerWithBooks)
-async def get_seller(seller_id: int, session: AsyncSession = DBSession):
-    seller = await session.get(Seller, seller_id)
-    if seller:
-        return seller
+async def get_seller(seller_id: int, session: AsyncSession = Depends(get_async_session)):
+    print(f"🔍 Looking for seller with ID {seller_id}...")
 
-    return Response(status_code=status.HTTP_404_NOT_FOUND)
+    query = select(Seller).options(joinedload(Seller.books)).where(Seller.id == seller_id)
+    result = await session.execute(query)
+    seller = result.scalars().first()
+
+    if not seller:
+        print("Seller not found")
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    
+    return ReturnedSellerWithBooks(
+        id=seller.id,
+        first_name=seller.first_name,
+        last_name=seller.last_name,
+        e_mail=seller.e_mail,
+        books=[ReturnedBook(id=b.id, title=b.title, author=b.author, year=b.year, pages=b.pages, seller_id=b.seller_id) for b in seller.books]  # ✅ Преобразование в Pydantic
+    )
 
 
 @sellers_router.put("/{seller_id}", response_model=ReturnedSeller)

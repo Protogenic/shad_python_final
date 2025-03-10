@@ -26,6 +26,7 @@ DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 )  # Прописываем модель ответа
 async def create_book(
     book: IncomingBook,
+    seller_id: int,
     session: DBSession,
 ):  # прописываем модель валидирующую входные данные
     # session = get_async_session() вместо этого мы используем иньекцию зависимостей DBSession
@@ -37,6 +38,7 @@ async def create_book(
             "author": book.author,
             "year": book.year,
             "pages": book.pages,
+            "seller_id": seller_id
         }
     )
 
